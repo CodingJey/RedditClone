@@ -1,77 +1,86 @@
 
-# infra/database.py
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-import psycopg2
-import time
+from sqlalchemy.orm import DeclarativeBase
+import asyncpg
+import asyncio
+import os
 
 # Configuration for database URLs
-EXTERNAL_DATABASE_URL = "postgresql://user:password@external_host:5432/mydatabase"
-TEST_DATABASE_URL = "sqlite:///./test.db"
+EXTERNAL_DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://appadmin:admin@localhost:5432/appdb")
+TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
-def is_db_reachable(connection_url):
-    """
-    Checks if the given database connection URL is reachable within 3 seconds.
-    """
+# Base class for SQLAlchemy models
+class Base(DeclarativeBase):
+    pass
+
+# Function to check if the database is reachable
+async def is_db_reachable(connection_url: str) -> bool:
     try:
-        start_time = time.time()
-        with psycopg2.connect(connection_url, connect_timeout=3):
-            pass
-        elapsed_time = time.time() - start_time
-        if elapsed_time > 3:
-            return False
+        parsed_url = asyncpg.parse_connect_dsn(connection_url)
+        conn = await asyncpg.connect(
+            host=parsed_url.host,
+            port=parsed_url.port,
+            user=parsed_url.user,
+            password=parsed_url.password,
+            database=parsed_url.database,
+            timeout=3
+        )
+        await conn.close()
         return True
-    except Exception:
+    except Exception as e:
+        print(f"Database connection error: {e}")
         return False
 
-# Attempt to connect to the external PostgreSQL database
-try:
-    if is_db_reachable(EXTERNAL_DATABASE_URL):
-        engine = create_engine(EXTERNAL_DATABASE_URL)
-        engine.connect()  # Test the connection
-        print("Connected to the external PostgreSQL database.")
-    else:
-        raise ConnectionError("Database connection timeout or unreachable.")
-except Exception as e:
-    print(f"Failed to connect to external PostgreSQL database: {e}. Falling back to the test database.")
-    engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
-
-# Base for Models
-Base = declarative_base()
-
-# Session Local
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Dependency to Get DB Session
-def get_db():
-    db = SessionLocal()
+# Initialize the database engine
+async def init_engine():
     try:
-        yield db
-    finally:
-        db.close()
+        if await is_db_reachable(EXTERNAL_DATABASE_URL):
+            engine = create_async_engine(EXTERNAL_DATABASE_URL, future=True, echo=True)
+            print("Connected to the external PostgreSQL database.")
+        else:
+            raise ConnectionError("Database connection timeout or unreachable.")
+    except Exception as e:
+        print(f"Failed to connect to external PostgreSQL database: {e}. Falling back to the test database.")
+        engine = create_async_engine(TEST_DATABASE_URL, future=True, echo=True)
+    return engine
 
-# Utility to Initialize Database
-def init_db():
-    import models.models  # Ensure models are imported to register with Base
-    Base.metadata.create_all(bind=engine)
+# Create the async session factory
+AsyncSessionLocal = async_sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=None,  # Will be set after engine initialization
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
 
-# Test Database Configuration for Pytest Integration Testing
-def get_test_db():
-    """
-    Provides a session connected to an in-memory SQLite database for testing.
-    """
-    test_engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
-    TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+# Dependency to get a database session
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        yield session
 
-    # Create tables in the test database
-    import models.models  # Ensure models are imported to register with Base
-    Base.metadata.create_all(bind=test_engine)
+# Initialize the database (create tables)
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
-    test_db = TestSessionLocal()
-    try:
-        yield test_db
-    finally:
-        test_db.close()
+# For testing: Create an in-memory SQLite database
+async def get_test_db():
+    test_engine = create_async_engine("sqlite+aiosqlite:///:memory:", future=True, echo=True)
+    TestAsyncSessionLocal = async_sessionmaker(
+        autocommit=False,
+        autoflush=False,
+        bind=test_engine,
+        class_=AsyncSession
+    )
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    async with TestAsyncSessionLocal() as session:
+        yield session
 
+# Initialize the engine and bind it to the session factory
+async def startup():
+    global engine, AsyncSessionLocal
+    engine = await init_engine()
+    AsyncSessionLocal.configure(bind=engine)
 

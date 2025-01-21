@@ -2,14 +2,14 @@ from fastapi import FastAPI
 from api.main_controller import router
 from middlewares.exception_handler import global_exception_handler
 from utils.logger import logger
-from infra.database import Base, engine
+from infra.database import startup# Ensure this is imported from the correct path
+import logging
+from alembic import command
+from alembic.config import Config
 
 def create_app() -> FastAPI:
-    # Initialize database
-    Base.metadata.create_all(bind=engine)
-
     app = FastAPI()
-
+    logging.basicConfig(level=logging.DEBUG)
     # Include routes
     app.include_router(router)
 
@@ -19,5 +19,15 @@ def create_app() -> FastAPI:
     logger.info("Starting FastAPI application")
     return app
 
+def run_migrations():
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
+
 app = create_app()
+
+# Ensure the async initialization is called during startup
+@app.on_event("startup")
+async def startup_event():
+    await startup()
+    run_migrations()
 

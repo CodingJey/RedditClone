@@ -1,43 +1,65 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+from repositories.repository import (
+    create_user, get_user, list_users, update_user, delete_user, get_user_by_email
+)
+from repositories.repository import create_thread, get_thread, list_threads, delete_thread
+from repositories.repository import create_post, list_posts, delete_post
+from schemas.schemas import UserCreate, UserUpdate, ThreadCreate, PostCreate
 
-from sqlalchemy.orm import Session
-from models.models import Product
-from schemas.schemas import ProductCreate, ProductRead
+# User Service Functions
 
-def create_product_service(db: Session, product: ProductCreate) -> Product:
-    """Create a new product entry in the database."""
-    new_product = Product(**product.dict())
-    db.add(new_product)
-    db.commit()
-    db.refresh(new_product)
-    return new_product
+async def create_user_service(db: AsyncSession, user: UserCreate):
+    """Create a new user entry in the database."""
+    return await create_user(db, user)
 
-def get_product_service(db: Session, product_id: int) -> Product:
-    """Retrieve a single product by its ID."""
-    return db.query(Product).filter(Product.id == product_id).first()
+async def get_user_service(db: AsyncSession, user_id: int):
+    """Retrieve a single user by its ID."""
+    return await get_user(db, user_id)
 
-def list_products_service(db: Session, skip: int = 0, limit: int = 10) -> list[Product]:
-    """Retrieve a list of products with optional pagination."""
-    return db.query(Product).offset(skip).limit(limit).all()
+async def list_users_service(db: AsyncSession, skip: int = 0, limit: int = 10):
+    """Retrieve a list of users with optional pagination."""
+    return await list_users(db, skip, limit)
 
-def update_product_service(db: Session, product_id: int, product: ProductCreate) -> Product:
-    """Update an existing product entry in the database."""
-    existing_product = db.query(Product).filter(Product.id == product_id).first()
-    if not existing_product:
-        return None
+async def update_user_service(db: AsyncSession, user_id: int, user: UserUpdate):
+    """Update an existing user entry in the database."""
+    return await update_user(db, user_id, user)
 
-    for key, value in product.dict(exclude_unset=True).items():
-        setattr(existing_product, key, value)
-    
-    db.commit()
-    db.refresh(existing_product)
-    return existing_product
+async def delete_user_service(db: AsyncSession, user_id: int):
+    """Delete a user entry from the database."""
+    return await delete_user(db, user_id)
 
-def delete_product_service(db: Session, product_id: int) -> bool:
-    """Delete a product entry from the database."""
-    product = db.query(Product).filter(Product.id == product_id).first()
-    if not product:
-        return False
+async def get_user_by_email_service(db: AsyncSession, email: str):
+    """Retrieve a user by email."""
+    return await get_user_by_email(db, email)
 
-    db.delete(product)
-    db.commit()
-    return True
+# Thread Service Functions
+
+async def create_thread_service(db: AsyncSession, thread: ThreadCreate):
+    """Create a new thread entry in the database."""
+    return await create_thread(db, thread)
+
+async def get_thread_service(db: AsyncSession, thread_id: int):
+    """Retrieve a single thread by its ID."""
+    return await get_thread(db, thread_id)
+
+async def list_threads_service(db: AsyncSession, skip: int = 0, limit: int = 10):
+    """Retrieve a list of threads with optional pagination."""
+    return await list_threads(db, skip, limit)
+
+async def delete_thread_service(db: AsyncSession, thread_id: int):
+    """Delete a thread entry from the database."""
+    return await delete_thread(db, thread_id)
+
+# Post Service Functions
+
+async def create_post_service(db: AsyncSession, thread_id: int, post: PostCreate):
+    """Create a new post entry in the specified thread."""
+    return await create_post(db, thread_id, post)
+
+async def list_posts_service(db: AsyncSession, thread_id: int, skip: int = 0, limit: int = 10):
+    """Retrieve a list of posts in a thread with optional pagination."""
+    return await list_posts(db, thread_id, skip, limit)
+
+async def delete_post_service(db: AsyncSession, thread_id: int, post_id: int):
+    """Delete a post entry from the specified thread."""
+    return await delete_post(db, thread_id, post_id)

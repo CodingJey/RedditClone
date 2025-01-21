@@ -1,23 +1,65 @@
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, ConfigDict
+from datetime import datetime, date
 
-# Schema for reading a product (response model)
-class ProductRead(BaseModel):
-    id: int
-    name: str
-    description: Optional[str] = None
-    price: float
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
-    class Config:
-        orm_mode = True  # Enables compatibility with SQLAlchemy ORM objects
+class LoginResponse(BaseModel):
+    token: str
 
+class User(BaseModel):
+    user_id: int
+    first_name : str 
+    last_name : str 
+    nickname : str 
+    email: str
+    password : str
+    date_of_birth : date 
+    date_of_joining: date
 
-# Schema for creating or updating a product (request model)
-class ProductCreate(BaseModel):
-    name: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = Field(None, max_length=1024)
-    price: float = Field(..., gt=0)
+    model_config = ConfigDict(from_attributes=True)
+
+class UserCreate(BaseModel):
+    first_name: str
+    last_name: str
+    nickname: str
+    date_of_birth: date
+    email: str
+    password: str
 
     class Config:
         orm_mode = True
 
+
+class UserUpdate(BaseModel):
+    name: str = Field(None)
+    email: str = Field(None, description="Must be a valid email address")
+    class Config:
+        orm_mode = True
+class Thread(BaseModel):
+    thread_id: int
+    name: str
+    description: str
+    date_of_creation: date
+
+class ThreadCreate(BaseModel):
+    name: str
+    description: str
+    class Config:
+        orm_mode = True
+class Post(BaseModel):
+    post_id: int
+    thread_id: int
+    poster_id: int
+    content: str
+    post_date: date
+    rating: int = 0
+
+class PostCreate(BaseModel):
+    thread_id: int
+    poster_id: int
+    content: str
+    name: str
+    class Config:
+        orm_mode = True

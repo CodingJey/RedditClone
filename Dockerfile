@@ -1,5 +1,13 @@
-FROM python:alpine3.17
-WORKDIR /app
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9
+
+COPY requirements/dev-requirements.txt .
+
+RUN pip install -r dev-requirements.txt
+
 COPY . /app
-RUN pip install -r requirements/dev-requirements.txt
-ENTRYPOINT ["python", "uvicorn main:app --host 0.0.0.0 --port 8000]
+
+WORKDIR /app
+
+EXPOSE 8000 
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
