@@ -14,14 +14,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-  #
-  # alembic-upgrade:
-  #   build: .
-  #   command: alembic revision --autogenerate -m "Initial migration"
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #
+  
   fastapi:
     build: .
     ports:
@@ -35,9 +28,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      # alembic-upgrade:
-      #   condition: service_completed_successfully
-
-
+    
 volumes:
   db_data:
