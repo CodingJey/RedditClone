@@ -1,7 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from models.models import User, Thread, Post
-from schemas.schemas import UserCreate, UserUpdate, ThreadCreate, PostCreate
+from models.Threads import Thread
+from schemas.threadModel import Thread, ThreadCreate
 from datetime import datetime
 
 # Thread Repository Functions

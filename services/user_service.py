@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from repositories.repository import (
+from repositories.user import (
     create_user, get_user, list_users, update_user, delete_user, get_user_by_email
 )
-from schemas.userModel import UserCreate
+from schemas.userModel import UserCreate,UserUpdate
 
 # User Service Functions
 

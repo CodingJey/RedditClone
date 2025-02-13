@@ -1,2 +1,113 @@
-*./.venvi
-__pycache__
+# ----------------------------------
+# Python-specific
+# ----------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pydevproject
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.coverage.xml
+
+# ----------------------------------
+# Virtual Environments
+# ----------------------------------
+# Escludi tutte le cartelle di ambienti virtuali
+.venv/
+venv/
+env/
+ENV/
+virtualenv/
+
+# ----------------------------------
+# Testing e Coverage
+# ----------------------------------
+.coverage
+.coverage.*
+.coverage_html/
+coverage.xml
+.pytest_cache/
+.tox/
+
+# ----------------------------------
+# Jupyter Notebooks (se non usati, rimuovere)
+# ----------------------------------
+.ipynb_checkpoints/
+*.ipynb
+
+# ----------------------------------
+# Build e Distribuzioni
+# ----------------------------------
+build/
+dist/
+*.egg-info/
+*.egg
+wheels/
+*.whl
+*.manifest
+*.spec
+
+# ----------------------------------
+# File di ambiente locale
+# ----------------------------------
+.env
+.env.local
+.env.*
+.venv/
+.flaskenv
+
+# ----------------------------------
+# File di sistema e temporanei Windows
+# ----------------------------------
+# File nascosti di sistema
+Thumbs.db
+Desktop.ini
+.DS_Store  # Anche per compatibilità cross-OS
+
+# File temporanei di Office e altri
+~$*
+*.tmp
+*.temp
+*.log
+*.bak
+
+# Shortcut e link simbolici (Windows)
+*.lnk
+
+# Cartelle temporanee
+[Tt]emp/
+[Tt]mp/
+
+# ----------------------------------
+# Editor e IDE
+# ----------------------------------
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# PyCharm
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Altri editor
+.history/
+.vs/
+
+# ----------------------------------
+# Miscellanea
+# ----------------------------------
+# Database SQLite (se non versionato)
+*.sqlite3
+
+# Logs e cartelle di output
+logs/
+*.log

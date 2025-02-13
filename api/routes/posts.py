@@ -1,18 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.schemas import (
-    LoginRequest, LoginResponse, UserCreate, UserUpdate, User,
-    ThreadCreate, Thread, PostCreate, Post
+from schemas.postModel import (
+    PostCreate, Post
 )
-from services.service import (
-    list_users_service, create_user_service,
-    get_user_service, update_user_service, delete_user_service,
-    list_threads_service, create_thread_service,
+from services.post_service import (
     list_posts_service, create_post_service, delete_post_service
 )
-# from services.service import (login_service, logout_service) 
-from fastapi.responses import Response
 from infra.database import get_db
+
+router = APIRouter()
 
 @router.get("/threads/{thread_id}/posts", response_model=list[Post])
 async def list_posts(thread_id: int, skip: int = 0, limit: int = 10, db: AsyncSession = Depends(get_db)):

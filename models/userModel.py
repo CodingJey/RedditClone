@@ -12,7 +12,7 @@ class User(BaseModel):
     # date_of_joining: date
 
     model_config = ConfigDict(from_attributes=True)
- 
+
 class UserCreate(BaseModel):
     first_name: str
     last_name: str

@@ -1,9 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from models.models import User, Thread, Post
-from schemas.schemas import UserCreate, UserUpdate, ThreadCreate, PostCreate
-from datetime import datetime
-
+from schemas.userModel import UserCreate, UserUpdate,User
 # User Repository Functions
 
 async def create_user(db: AsyncSession, user_create: UserCreate):

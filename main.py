@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from api.main_controller import router
+from api.main import api_router
 from middlewares.exception_handler import global_exception_handler
 from utils.logger import logger
 from infra.database import startup
@@ -10,7 +10,7 @@ def create_app() -> FastAPI:
     app = FastAPI()
     logging.basicConfig(level=logging.DEBUG)
     # Include routes
-    app.include_router(router)
+    app.include_api_router(api_router)
 
     # Add custom exception handler
     app.add_exception_handler(Exception, global_exception_handler)

@@ -1,9 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from repositories.repository import (
-    create_user, get_user, list_users, update_user, delete_user, get_user_by_email
-)
-from repositories.repository import create_thread, get_thread, list_threads, delete_thread
-from repositories.repository import create_post, list_posts, delete_post
+from repositories.thread import create_thread, get_thread, list_threads, delete_thread
 from schemas.schemas import UserCreate, UserUpdate, ThreadCreate, PostCreate
 
 # Thread Service Functions
