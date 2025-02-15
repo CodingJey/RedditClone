@@ -13,6 +13,15 @@ class User(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class UserResponse(BaseModel):
+    user_id: int
+    first_name : str
+    last_name : str
+    nickname : str
+    email: str
+    date_of_birth : date
+
+
 class UserCreate(BaseModel):
     first_name: str
     last_name: str
@@ -22,7 +31,7 @@ class UserCreate(BaseModel):
     password: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class UserUpdate(BaseModel):
@@ -30,4 +39,4 @@ class UserUpdate(BaseModel):
     email: str = Field(None, description="Must be a valid email address")
     
     class Config:
-        orm_mode = True
+        from_attributes = True

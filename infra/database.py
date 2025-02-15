@@ -1,83 +1,86 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from __future__ import annotations
+from contextlib import asynccontextmanager
+from functools import wraps
+from typing import Any, TypeVar, Callable, Coroutine, ParamSpec, Concatenate
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import URL
+from sqlalchemy import URL, select, update
 import asyncpg
 import os
 
-# Configuration for database URLs
-EXTERNAL_DATABASE_URL = os.getenv("DATABASE_URL","postgresql+asyncpg://appadmin:admin@db:5432/appdb")
+P = ParamSpec("P")
+R = TypeVar("R")
+
+EXTERNAL_DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://appadmin:admin@db:5432/appdb")
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
-class Base(DeclarativeBase):
-    pass
+class Database:
+    def __init__(self, url: str | None = None):
+        self.url = url or EXTERNAL_DATABASE_URL
+        self.engine = None
+        self.async_session_local = None
 
-async def is_db_reachable(connection_url: str) -> bool:
-    """Check if PostgreSQL database is reachable using parsed connection URL"""
-    try:
-        # Parse the connection URL
-        url = URL.create(connection_url)
-        conn = await asyncpg.connect(
-        host="db", 
-        port=5432,
-        user="appadmin",
-        password="admin",
-        database="appdb",
-        timeout=3
-        )
-        print("test connection works")
-        await conn.close()
-        return True
-    except Exception as e:
-        print(f"Database connection error: {e}")
-        return False
+    async def is_db_reachable(self) -> bool:
+        """Keep connectivity check but make it instance method"""
+        try:
+            url_obj = URL.create(self.url)
+            if url_obj.drivername != 'postgresql+asyncpg':
+                return True
 
-async def init_engine():
-    """Initialize database engine with proper error handling"""
-    try:
-        # First check if database is reachable
-        if await is_db_reachable(EXTERNAL_DATABASE_URL):
-            # Create engine with connection validation
-            engine = create_async_engine(
-                EXTERNAL_DATABASE_URL,
-                future=True,
-                echo=True,
-                pool_pre_ping=True  # Check connections before using them
+            conn = await asyncpg.connect(
+                host=url_obj.host or "localhost",
+                port=url_obj.port or 5432,
+                user=url_obj.username,
+                password=url_obj.password,
+                database=url_obj.database,
+                timeout=3
             )
-            
-            # Test connection immediately
-            
-            print("Connected to the external PostgreSQL database.")
-            return engine
-    except Exception as e:
-        print(f"PostgreSQL connection failed: {e}")
+            await conn.close()
+            return True
+        except Exception as e:
+            print(f"Database connection error: {e}")
+            return False
 
-    # Fallback to SQLite
-    print("Falling back to the test database.")
-    return create_async_engine(TEST_DATABASE_URL, future=True, echo=True)
+    async def startup(self) -> None:
+        """Consolidated initialization"""
+        try:
+            if await self.is_db_reachable():
+                self.engine = create_async_engine(
+                    self.url,
+                    future=True,
+                    echo=True,
+                    pool_pre_ping=True
+                )
+                print("Connected to PostgreSQL database.")
+            else:
+                raise RuntimeError("Primary database unreachable")
+        except Exception as e:
+            print(f"Falling back to SQLite: {e}")
+            self.engine = create_async_engine(
+                TEST_DATABASE_URL,
+                future=True,
+                echo=True
+            )
 
-# Session factory setup
-AsyncSessionLocal = async_sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=None,  # Set after engine initialization
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
+        self.async_session_local = async_sessionmaker(
+            bind=self.engine,
+            autocommit=False,
+            autoflush=False,
+            expire_on_commit=False,
+            class_=AsyncSession
+        )
 
-# Dependency injection
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        yield session
+    @asynccontextmanager
+    async def session_scope(self) -> AsyncSession:
+        """Keep as main session provider"""
+        if not self.async_session_local:
+            raise RuntimeError("Database not initialized")
 
-# Database initialization
-async def init_db():
-    engine = await init_engine()  # Get initialized engine
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-# Application startup
-async def startup():
-    global engine, AsyncSessionLocal
-    engine = await init_engine()
-    AsyncSessionLocal.configure(bind=engine)
+        async with self.async_session_local() as session:
+            try:
+                yield session
+                await session.commit()
+            except Exception:
+                await session.rollback()
+                raise
 

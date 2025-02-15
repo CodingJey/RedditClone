@@ -3,7 +3,6 @@ from repositories.post import create_post, list_posts, delete_post
 from models.post_model import Post, PostCreate
 
 class PostService():
-    def __init__(self, repo:Post)
 
     async def create_post_service(db: AsyncSession, thread_id: int, post: PostCreate):
         """Create a new post entry in the specified thread."""

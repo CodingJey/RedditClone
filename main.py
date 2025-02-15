@@ -1,11 +1,12 @@
 from fastapi import FastAPI
 from api.main import api_router
 from middlewares.exception_handler import global_exception_handler
-from utils.logger import logger
-from infra.database import startup
+from infra.database import Database
 import logging
 from utils.migration import run_migrations 
 import os 
+
+
 def create_app() -> FastAPI:
     app = FastAPI()
     logging.basicConfig(level=logging.DEBUG)
@@ -20,8 +21,10 @@ def create_app() -> FastAPI:
 
 app = create_app()
 
+
 # Ensure the async initialization is called during startup
 @app.on_event("startup")
 async def startup_event():
-    await startup()
+    database : Database = Database()
+    await database.startup()
     run_migrations()

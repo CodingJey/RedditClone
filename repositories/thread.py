@@ -4,13 +4,10 @@ from datetime import datetime
 
 # Thread Repository Functions
 class ThreadRepository():
-    
-    async def create_thread(db: AsyncSession, thread_create: ThreadCreate):
+
+    async def create_thread(self, thread_create: ThreadCreate) -> Thread:
         """Create a new thread in the database."""
-        db_thread = Thread(
-            name=thread_create.name,
-            description=thread_create.description
-        )
+        db_thread = Thread(**ThreadCreate.modelDump())
         await db.add(db_thread)
         db.commit()
         db.refresh(db_thread)
