@@ -1,7 +1,8 @@
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime, date
+from typing import Optional
 
-class User(BaseModel):
+class UserRequest(BaseModel):
     user_id: int
     first_name : str
     last_name : str
@@ -9,7 +10,8 @@ class User(BaseModel):
     email: str
     password : str
     date_of_birth : date
-    # date_of_joining: date
+    date_of_joining: date
+    is_active : str = Field(None)  
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -22,7 +24,7 @@ class UserResponse(BaseModel):
     date_of_birth : date
 
 
-class UserCreate(BaseModel):
+class UserCreateRequest(BaseModel):
     first_name: str
     last_name: str
     nickname: str
@@ -34,7 +36,7 @@ class UserCreate(BaseModel):
         from_attributes = True
 
 
-class UserUpdate(BaseModel):
+class UserUpdateRequest(BaseModel):
     name: str = Field(None)
     email: str = Field(None, description="Must be a valid email address")
     

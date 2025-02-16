@@ -1,9 +1,9 @@
 #Dependency requirements
 
-
-fastapi==0.115.6
+python==3.10
+fastapi
 uvicorn
-sqlalchemy==2.0.36
+sqlalchemy
 
 pydantic==2.10.4
 pytest==8.3.4

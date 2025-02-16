@@ -1,6 +1,7 @@
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Callable
 from fastapi import Depends
-from repositories import BaseRepository, user_repo
+from sqlalchemy.ext.asyncio import AsyncSession
+from repositories.base_repository import BaseRepository
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with database.session_scope() as session:
@@ -11,7 +12,3 @@ def get_repository(repo_type: type[BaseRepository]) -> Callable[[AsyncSession], 
         return repo_type(session)
     return _get_repo
 
-def get_user_service(
-    user_repo: UserRepository = Depends(get_repository(user_repo))
-) -> UserService:
-    return UserService(user_repo)

@@ -5,7 +5,7 @@ import logging
 import sys
 
 # Import your SQLAlchemy Base and models here
-from models.models import Base
+from models.base import Base
 
 # Get the Alembic config object
 config = context.config

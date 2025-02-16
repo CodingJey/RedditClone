@@ -4,8 +4,8 @@ from api.routes import users, posts, thread
 api_router = APIRouter()
 
 api_router.include_router(users.router)
-api_router.include_router(posts.router)
-api_router.include_router(thread.router)
+# api_router.include_router(posts.router)
+# api_router.include_router(thread.router)
 
 
 #

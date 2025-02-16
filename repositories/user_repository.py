@@ -1,13 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from schemas.user_model import UserCreate, UserUpdate, User, UserResponse
-# User Repository Functions
-
+from models.User import User
+from repositories.base_repository import BaseRepository
 
 class UserRepository(BaseRepository):
 
-    async def create_user(self, session: AsyncSession, user : User) -> UserResponse:
-        user = User(**user.modelDump())
+    async def create_user(self, session: AsyncSession, user : User) -> User:
         session.add(user)
         await session.flush()
         await session.refresh(user)
