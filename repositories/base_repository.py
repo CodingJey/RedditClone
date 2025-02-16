@@ -1,7 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from infra import database
+from typing import Generic, TypeVar, Type, List # Correct import line
+from models.base import Base
 
-class BaseRepository:
+ModelType = TypeVar("ModelType", bound=Base)
+class BaseRepository(Generic[ModelType]):
     """Base repository class with database access."""
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession):        
         self.session = session
+        self.model: Type[ModelType]

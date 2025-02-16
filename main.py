@@ -1,29 +1,34 @@
 from fastapi import FastAPI
-from api.main import api_router
-from middlewares.exception_handler import global_exception_handler
-from infra.database import Database
-# from logging.logger import logger
-from utils.migration import run_migrations 
-import os 
+from fastapi.exceptions import RequestValidationError
+from api.main import api_router # Assuming api_router is defined
+from exceptions.exception_handler import validation_exception_handler # Assuming handlers are defined
+from infra.database import get_database, database_instance # Import get_database dependency
+import logging
+from logging.config import dictConfig
+from configs.config import LOGGING_CONFIG # Assuming LOGGING_CONFIG is defined
+from middlewares.request_logger import log_requests # Assuming middleware is defined
 
 
 def create_app() -> FastAPI:
+    dictConfig(LOGGING_CONFIG)
+    logger = logging.getLogger("app")
+
     app = FastAPI()
-    # Include routes
-    app.include_router(api_router)
+    app.include_router(api_router) # Include your API routes
+    app.middleware("http")(log_requests) # Register request logging middleware
+    app.add_exception_handler(RequestValidationError, validation_exception_handler) # Register exception handlers
 
-    # Add custom exception handler
-    app.add_exception_handler(Exception, global_exception_handler)
-
-    # logger.info("Starting FastAPI application")
+    logger.info("FastAPI app created")
     return app
 
-app : FastAPI = create_app()
+app = create_app()
 
-
-# Ensure the async initialization is called during startup
 @app.on_event("startup")
 async def startup_event():
-    database : Database = Database()
-    await database.startup()
-    run_migrations()
+    logger = logging.getLogger("app")
+    await database_instance.initialize() 
+    logger.info("Database initialized via dependency injection.")
+
+    logger.info("Application startup tasks finished.")
+
+    # app.dependency_overrides[get_database] = lambda: database_instance # Override dependency

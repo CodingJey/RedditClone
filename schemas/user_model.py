@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime, date
-from typing import Optional
+from typing import Optional, ClassVar
 
 class UserRequest(BaseModel):
     user_id: int
@@ -10,10 +10,10 @@ class UserRequest(BaseModel):
     email: str
     password : str
     date_of_birth : date
-    date_of_joining: date
-    is_active : str = Field(None)  
+    is_active : str 
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config: ClassVar[dict] = {"from_attributes": True} # Correct way to set Config in Pydantic v2+
+
 
 class UserResponse(BaseModel):
     user_id: int
@@ -22,7 +22,7 @@ class UserResponse(BaseModel):
     nickname : str
     email: str
     date_of_birth : date
-
+    
 
 class UserCreateRequest(BaseModel):
     first_name: str
@@ -32,13 +32,11 @@ class UserCreateRequest(BaseModel):
     email: str
     password: str
 
-    class Config:
-        from_attributes = True
-
+    model_config: ClassVar[dict] = {"from_attributes": True} # Correct way to set Config in Pydantic v2+
 
 class UserUpdateRequest(BaseModel):
     name: str = Field(None)
     email: str = Field(None, description="Must be a valid email address")
     
-    class Config:
-        from_attributes = True
+    model_config: ClassVar[dict] = {"from_attributes": True} # Correct way to set Config in Pydantic v2+
+

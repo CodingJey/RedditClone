@@ -28,7 +28,9 @@ def upgrade():
         sa.Column('nickname', sa.String()),
         sa.Column('password', sa.String()),
         sa.Column('email', sa.String(), unique=True),
-        sa.Column('date_of_birth', sa.Date())
+        sa.Column('date_of_birth', sa.Date()),
+        sa.Column('date_of_joining', sa.DateTime()),
+        sa.Column('is_active', sa.Boolean())
     )
 
     op.create_table(
