@@ -11,7 +11,7 @@ class User(Base):
     password = Column(String)
     email = Column(String, unique=True)
     date_of_birth = Column(Date)
-    date_of_creation = Column(DateTime, default=datetime.utcnow)
+    date_of_joining = Column(DateTime, default=datetime.utcnow)
     is_active = Column(Boolean)
     # posts = relationship("Post", back_populates="poster", cascade="all, delete, delete-orphan")
     # subscriptions = relationship("Subscription", back_populates="user", cascade="all, delete, delete-orphan")

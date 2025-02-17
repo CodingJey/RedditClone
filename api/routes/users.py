@@ -4,7 +4,7 @@ from schemas.user_model import (
     UserCreateRequest, UserUpdateRequest, UserRequest, UserResponse
 )
 from services.user_service import UserService, get_user_service
-from infra.database import get_session # corrected import
+from infra.database import get_session, get_database, Database
 
 router = APIRouter(prefix="/users")
 
@@ -14,6 +14,7 @@ async def test_session_dependency(session: AsyncSession = Depends(get_session)):
 
 @router.get("/", response_model=list[UserResponse])
 async def list_users(skip: int = 0, limit: int = 10,
+                        db: Database = Depends(get_database),
                         session: AsyncSession = Depends(get_session), # corrected dependency to get_session and param name
                         service: UserService = Depends(get_user_service)):
     users = await service.list_users_service(session, skip, limit) # corrected param name to session
@@ -22,6 +23,7 @@ async def list_users(skip: int = 0, limit: int = 10,
 
 @router.post("/", response_model=UserResponse, status_code=201)
 async def create_user(user_data: UserCreateRequest,
+                        db: Database = Depends(get_database),                        
                         session: AsyncSession = Depends(get_session), # kept correct dependency and param name
                         service: UserService = Depends(get_user_service)):
     return await service.create_user_service(session, user_data) # corrected param name to session

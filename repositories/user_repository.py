@@ -3,9 +3,13 @@ from sqlalchemy.future import select
 from models.User import User
 from schemas.user_model import UserCreateRequest, UserResponse
 from repositories.base_repository import BaseRepository
-from infra.database import session_scope
+from infra.database import get_session
 from fastapi import Depends 
 from datetime import datetime
+import logging 
+
+logger = logging.getLogger("app")  # Get logger instance
+
 
 class UserRepository(BaseRepository[User]):
     def __init__(self, session: AsyncSession):
@@ -22,7 +26,7 @@ class UserRepository(BaseRepository[User]):
                             date_of_birth = req.date_of_birth,
                             is_active = True) # Corrected: Python boolean True
 
-        await self.session.add(user)
+        self.session.add(user)
         await self.session.flush() # flush to get the generated id right after adding
         await self.session.refresh(user) # refresh to load any database-generated defaults and the id
 
@@ -62,7 +66,9 @@ class UserRepository(BaseRepository[User]):
         return result.scalars().all()
 
 async def get_user_repository(
-    session: AsyncSession = Depends(session_scope)
+    session: AsyncSession = Depends(get_session)
 ) -> UserRepository:
     """Dependency to get UserRepository."""
+    logger.info(session)
+    logger.info(type(session))
     return UserRepository(session)

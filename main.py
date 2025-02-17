@@ -26,7 +26,7 @@ app = create_app()
 @app.on_event("startup")
 async def startup_event():
     logger = logging.getLogger("app")
-    await database_instance.initialize() 
+    database_instance
     logger.info("Database initialized via dependency injection.")
 
     logger.info("Application startup tasks finished.")
